@@ -33,4 +33,39 @@
  */
 export function calculateDosaOrder(type, quantity = 1, isSpicy = false) {
   // Your code here
+  // 1. Dosa Price List (Mapping)
+  const prices = {
+    plain: 40,
+    masala: 60,
+    onion: 50,
+    butter: 70,
+    paper: 90,
+    cheese: 80
+  };
+
+  // 2. Validation: Type check (must be a valid string from our list)
+  // Humne .toLowerCase() use kiya hai taaki "Masala" aur "masala" dono chalein
+  if (typeof type !== 'string' || !prices.hasOwnProperty(type.toLowerCase())) {
+    return null;
+  }
+
+  // 3. Validation: Quantity check (must be a positive number and not NaN)
+  if (typeof quantity !== 'number' || quantity <= 0 || isNaN(quantity)) {
+    return null;
+  }
+
+  const normalizedType = type.toLowerCase();
+  const basePrice = prices[normalizedType];
+
+  // 4. Spicy Logic: Rs 10 extra per dosa
+  const pricePerDosa = isSpicy ? basePrice + 10 : basePrice;
+  const total = pricePerDosa * quantity;
+
+  // 5. Final Object Return
+  return {
+    type: normalizedType,
+    quantity: quantity,
+    pricePerDosa: pricePerDosa,
+    total: total
+  };
 }

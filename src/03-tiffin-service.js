@@ -39,14 +39,71 @@
  *   combinePlans(plan1, plan2, plan3)
  *   // => { totalCustomers: 3, totalRevenue: 7200, mealBreakdown: { veg: 2, nonveg: 1 } }
  */
+// 1. Create Plan using Destructuring and Defaults
 export function createTiffinPlan({ name, mealType = "veg", days = 30 } = {}) {
-  // Your code here
+  // Validation: Name must exist and not be empty
+  if (!name || typeof name !== 'string' || name.trim() === "") return null;
+
+  const prices = { veg: 80, nonveg: 120, jain: 90 };
+  const dailyRate = prices[mealType.toLowerCase()];
+
+  // Validation: Meal type must be valid
+  if (dailyRate === undefined) return null;
+
+  return {
+    name: name,
+    mealType: mealType.toLowerCase(),
+    days: days,
+    dailyRate: dailyRate,
+    totalCost: dailyRate * days
+  };
 }
 
+// 2. Combine Plans using Rest Parameters (...plans)
 export function combinePlans(...plans) {
-  // Your code here
+  // Validation: If no plans provided
+  if (plans.length === 0) return null;
+
+  let totalRevenue = 0;
+  const mealBreakdown = {};
+
+  for (const plan of plans) {
+    totalRevenue += plan.totalCost;
+    
+    // Counting each meal type for the breakdown
+    const type = plan.mealType;
+    mealBreakdown[type] = (mealBreakdown[type] || 0) + 1;
+  }
+
+  return {
+    totalCustomers: plans.length,
+    totalRevenue: totalRevenue,
+    mealBreakdown: mealBreakdown
+  };
 }
 
+// 3. Apply Addons using Spread Operator and Rest
 export function applyAddons(plan, ...addons) {
-  // Your code here
+  // Validation: Plan null nahi hona chahiye
+  if (!plan) return null;
+
+  let extraDailyRate = 0;
+  const addonNames = [];
+
+  // Summing up all addon prices
+  for (const addon of addons) {
+    extraDailyRate += addon.price;
+    addonNames.push(addon.name);
+  }
+
+  const newDailyRate = plan.dailyRate + extraDailyRate;
+  const newTotalCost = newDailyRate * plan.days;
+
+  // Returning a NEW object (Immutability) using Spread
+  return {
+    ...plan, // Existing properties copy karo
+    dailyRate: newDailyRate, // Overwrite with new rate
+    totalCost: newTotalCost, // Overwrite with new total
+    addonNames: addonNames   // Add new property
+  };
 }

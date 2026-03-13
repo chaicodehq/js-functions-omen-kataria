@@ -45,18 +45,69 @@
  *   handleRSVP({ name: "Amit", rsvp: "yes" }, g => `${g.name} is coming!`, g => `${g.name} declined`)
  *   // => "Amit is coming!"
  */
+// 1. Process Guests (Filter implementation)
 export function processGuests(guests, filterFn) {
-  // Your code here
+  // Validation: Guests array hona chahiye aur filterFn ek function
+  if (!Array.isArray(guests) || typeof filterFn !== 'function') {
+    return [];
+  }
+
+  const filteredGuests = [];
+  for (const guest of guests) {
+    // Callback ko guest pass karo, agar true de toh select kar lo
+    if (filterFn(guest)) {
+      filteredGuests.push(guest);
+    }
+  }
+  return filteredGuests;
 }
 
+// 2. Notify Guests (Map implementation)
 export function notifyGuests(guests, notifyCallback) {
-  // Your code here
+  // Validation
+  if (!Array.isArray(guests) || typeof notifyCallback !== 'function') {
+    return [];
+  }
+
+  const results = [];
+  for (const guest of guests) {
+    // Har guest ke liye notify callback chalao aur result save karo
+    results.push(notifyCallback(guest));
+  }
+  return results;
 }
 
+// 3. Handle RSVP (Conditional Callbacks)
 export function handleRSVP(guest, onAccept, onDecline) {
-  // Your code here
+  // Validation: Guest check aur callbacks function hone chahiye
+  if (!guest || typeof onAccept !== 'function' || typeof onDecline !== 'function') {
+    return null;
+  }
+
+  if (guest.rsvp === "yes") {
+    return onAccept(guest);
+  } else if (guest.rsvp === "no") {
+    return onDecline(guest);
+  } else {
+    return null; // RSVP status unknown
+  }
 }
 
+// 4. Transform Guest List (Pipe/Composition)
 export function transformGuestList(guests, ...transformFns) {
-  // Your code here
+  // Validation
+  if (!Array.isArray(guests)) {
+    return [];
+  }
+
+  let currentList = [...guests]; // Original array ko mat chhedo (Immutability)
+
+  // Ek ek karke saare transform functions apply karo
+  for (const fn of transformFns) {
+    if (typeof fn === 'function') {
+      currentList = fn(currentList);
+    }
+  }
+
+  return currentList;
 }

@@ -50,4 +50,59 @@
  */
 export function createFestivalManager() {
   // Your code here
+  // --- Private State (Encapsulated) ---
+  // Bahar se koi mgr.festivals karke access nahi kar payega
+  let festivals = [];
+  const validTypes = ["religious", "national", "cultural"];
+
+  // --- Public Methods (Returned Object) ---
+  return {
+    // 1. Add Festival with strict validation
+    addFestival: (name, date, type) => {
+      if (!name || typeof name !== 'string' || name.trim() === "") return -1;
+      if (typeof date !== 'string') return -1;
+      if (!validTypes.includes(type)) return -1;
+
+      // Duplicate check
+      const exists = festivals.some(f => f.name.toLowerCase() === name.toLowerCase());
+      if (exists) return -1;
+
+      festivals.push({ name, date, type });
+      return festivals.length;
+    },
+
+    // 2. Remove by name
+    removeFestival: (name) => {
+      const initialLength = festivals.length;
+      festivals = festivals.filter(f => f.name.toLowerCase() !== name.toLowerCase());
+      return festivals.length < initialLength;
+    },
+
+    // 3. Get all (Deep Copy to prevent external mutation)
+    getAll: () => {
+      // Map use karke hum objects ki nayi copy return kar rahe hain
+      return festivals.map(f => ({ ...f }));
+    },
+
+    // 4. Filter by type
+    getByType: (type) => {
+      return festivals
+        .filter(f => f.type === type)
+        .map(f => ({ ...f }));
+    },
+
+    // 5. Get upcoming 'n' festivals
+    getUpcoming: (currentDate, n = 3) => {
+      return festivals
+        .filter(f => f.date >= currentDate) // Filter future dates
+        .sort((a, b) => a.date.localeCompare(b.date)) // Sort by date ascending
+        .slice(0, n) // Pick top n
+        .map(f => ({ ...f }));
+    },
+
+    // 6. Get total count
+    getCount: () => {
+      return festivals.length;
+    }
+  };
 }

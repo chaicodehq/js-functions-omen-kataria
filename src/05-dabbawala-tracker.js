@@ -50,4 +50,74 @@
  */
 export function createDabbawala(name, area) {
   // Your code here
+  // --- Private State (Encapsulated) ---
+  let deliveries = [];
+  let nextId = 1;
+
+  // --- Returned Methods (The Closure) ---
+  return {
+    // 1. Add a new delivery
+    addDelivery: (from, to) => {
+      if (!from || !to || from.trim() === "" || to.trim() === "") {
+        return -1;
+      }
+      
+      const newDelivery = {
+        id: nextId++,
+        from: from,
+        to: to,
+        status: "pending"
+      };
+      
+      deliveries.push(newDelivery);
+      return newDelivery.id;
+    },
+
+    // 2. Mark as completed
+    completeDelivery: (id) => {
+      const delivery = deliveries.find(d => d.id === id);
+      
+      if (delivery && delivery.status === "pending") {
+        delivery.status = "completed";
+        return true;
+      }
+      return false;
+    },
+
+    // 3. Get pending deliveries (Deep Copy)
+    getActiveDeliveries: () => {
+      // Filter pending ones and use spread operator to return copies, not references
+      return deliveries
+        .filter(d => d.status === "pending")
+        .map(d => ({ ...d }));
+    },
+
+    // 4. Calculate Stats
+    getStats: () => {
+      const total = deliveries.length;
+      const completed = deliveries.filter(d => d.status === "completed").length;
+      const pending = total - completed;
+      
+      let successRate = "0.00%";
+      if (total > 0) {
+        successRate = ((completed / total) * 100).toFixed(2) + "%";
+      }
+
+      return {
+        name,
+        area,
+        total,
+        completed,
+        pending,
+        successRate
+      };
+    },
+
+    // 5. Reset the system
+    reset: () => {
+      deliveries = [];
+      nextId = 1; // Starting fresh for the next delivery
+      return true;
+    }
+  };
 }

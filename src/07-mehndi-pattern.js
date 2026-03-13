@@ -52,22 +52,80 @@
  *   isPalindrome("madam")     // => true
  *   generatePattern(3)        // => ["*", "**", "***", "**", "*"]
  */
+// 1. Repeat Character (Base Case: n <= 0)
 export function repeatChar(char, n) {
-  // Your code here
+  if (typeof char !== 'string' || char === "") return "";
+  
+  // Base Case
+  if (n <= 0) return "";
+  
+  // Recursive Case: current char + rest of the string
+  return char + repeatChar(char, n - 1);
 }
 
+// 2. Sum Nested Array (arbitrarily nested)
 export function sumNestedArray(arr) {
-  // Your code here
+  if (!Array.isArray(arr)) return 0;
+  if (arr.length === 0) return 0;
+
+  const [first, ...rest] = arr;
+  let currentSum = 0;
+
+  // Agar element khud ek array hai, toh uspar recurse karo
+  if (Array.isArray(first)) {
+    currentSum = sumNestedArray(first);
+  } else if (typeof first === 'number' && !isNaN(first)) {
+    currentSum = first;
+  }
+
+  // Current element ka sum + baaki array ka recursive sum
+  return currentSum + sumNestedArray(rest);
 }
 
+// 3. Flatten Array (making it single level)
 export function flattenArray(arr) {
-  // Your code here
+  if (!Array.isArray(arr)) return [];
+  if (arr.length === 0) return [];
+
+  const [first, ...rest] = arr;
+  
+  // Agar first element array hai, toh usey flatten karke spread karo
+  const flatFirst = Array.isArray(first) ? flattenArray(first) : [first];
+  
+  return [...flatFirst, ...flattenArray(rest)];
 }
 
+// 4. Is Palindrome (Case-insensitive)
 export function isPalindrome(str) {
-  // Your code here
+  if (typeof str !== 'string') return false;
+  
+  const s = str.toLowerCase();
+  
+  // Base Case: Agar string 1 char ki ya khali hai, toh woh palindrome hi hai
+  if (s.length <= 1) return true;
+  
+  // Check first and last characters
+  if (s[0] !== s[s.length - 1]) return false;
+  
+  // Recursive Case: Middle substring check karo
+  return isPalindrome(s.substring(1, s.length - 1));
 }
 
+// 5. Generate Symmetric Pattern
 export function generatePattern(n) {
-  // Your code here
+  if (!Number.isInteger(n) || n <= 0) return [];
+
+  // Helper function to build the pattern symmetrically
+  const build = (i) => {
+    // Base Case: Jab hum widest row (n) pe pahunch jayein
+    if (i === n) {
+      return [repeatChar("*", n)];
+    }
+
+    const currentLine = repeatChar("*", i);
+    // Recursive Step: current row + middle pattern + current row (mirroring)
+    return [currentLine, ...build(i + 1), currentLine];
+  };
+
+  return build(1);
 }

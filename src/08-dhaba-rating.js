@@ -44,18 +44,70 @@
  *   [{ rating: 3 }, { rating: 5 }].sort(byRating)
  *   // => [{ rating: 5 }, { rating: 3 }]
  */
+// 1. Create Filter: Ek aisa function return karta hai jo objects filter kare
 export function createFilter(field, operator, value) {
-  // Your code here
+  const operations = {
+    ">": (a, b) => a > b,
+    "<": (a, b) => a < b,
+    ">=": (a, b) => a >= b,
+    "<=": (a, b) => a <= b,
+    "===": (a, b) => a === b,
+  };
+
+  // Agar operator unknown hai, toh humesha false return karne wala function do
+  if (!operations[operator]) {
+    return () => false;
+  }
+
+  // Returning the predicate function
+  return (obj) => operations[operator](obj[field], value);
 }
 
+// 2. Create Sorter: Comparator function for Array.sort()
 export function createSorter(field, order = "asc") {
-  // Your code here
+  return (a, b) => {
+    const valA = a[field];
+    const valB = b[field];
+
+    if (valA === valB) return 0;
+
+    let comparison = 0;
+    // Handling strings and numbers
+    if (typeof valA === 'string' && typeof valB === 'string') {
+      comparison = valA.localeCompare(valB);
+    } else {
+      comparison = valA > valB ? 1 : -1;
+    }
+
+    return order === "asc" ? comparison : -comparison;
+  };
 }
 
+// 3. Create Mapper: Object mein se sirf zaroori fields rakhta hai
 export function createMapper(fields) {
-  // Your code here
+  return (obj) => {
+    const newObj = {};
+    fields.forEach(field => {
+      if (Object.prototype.hasOwnProperty.call(obj, field)) {
+        newObj[field] = obj[field];
+      }
+    });
+    return newObj;
+  };
 }
 
+// 4. Apply Operations: Sequential Pipeline (HOF that takes functions)
 export function applyOperations(data, ...operations) {
-  // Your code here
+  if (!Array.isArray(data)) return [];
+
+  let result = [...data]; // Shifting to a copy to maintain immutability
+
+  for (const op of operations) {
+    if (typeof op === 'function') {
+      // Har operation pure array par chalegi (filter, sort, ya map)
+      result = op(result);
+    }
+  }
+
+  return result;
 }

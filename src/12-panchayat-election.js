@@ -63,18 +63,116 @@
  *   election.castVote("V1", "C1", r => "voted!", e => "error: " + e);
  *   // => "voted!"
  */
+/**
+ * 1. Panchayat Election System (Closure & HOF)
+ */
 export function createElection(candidates) {
-  // Your code here
+  // --- Private State (Encapsulated) ---
+  const registeredVoters = new Set();
+  const votersWhoVoted = new Set();
+  const votesTally = {}; // { candidateId: count }
+
+  // Initialize tally for all candidates
+  candidates.forEach(c => { votesTally[c.id] = 0; });
+
+  return {
+    // Register Voter (Validation & Set storage)
+    registerVoter: (voter) => {
+      if (!voter || !voter.id || voter.age < 18) return false;
+      if (registeredVoters.has(voter.id)) return false;
+
+      registeredVoters.add(voter.id);
+      return true;
+    },
+
+    // Cast Vote (Callback pattern)
+    castVote: (voterId, candidateId, onSuccess, onError) => {
+      // Validations
+      if (!registeredVoters.has(voterId)) return onError("Voter not registered");
+      if (votersWhoVoted.has(voterId)) return onError("Already voted");
+      if (!(candidateId in votesTally)) return onError("Invalid candidate");
+
+      // Process Vote
+      votesTally[candidateId]++;
+      votersWhoVoted.add(voterId);
+      
+      return onSuccess({ voterId, candidateId });
+    },
+
+    // Get Results (Higher-Order Function)
+    getResults: (sortFn) => {
+      const results = candidates.map(c => ({
+        ...c,
+        votes: votesTally[c.id]
+      }));
+
+      if (typeof sortFn === 'function') {
+        return results.sort(sortFn);
+      }
+      
+      // Default: Descending by votes
+      return results.sort((a, b) => b.votes - a.votes);
+    },
+
+    // Get Winner (Logic check)
+    getWinner: () => {
+      const allResults = candidates.map(c => ({ ...c, votes: votesTally[c.id] }));
+      const totalVotes = Object.values(votesTally).reduce((a, b) => a + b, 0);
+      
+      if (totalVotes === 0) return null;
+
+      // Find candidate with max votes
+      return allResults.reduce((winner, current) => 
+        (current.votes > winner.votes) ? current : winner
+      , allResults[0]);
+    }
+  };
 }
 
+/**
+ * 2. Vote Validator (Factory Function)
+ */
 export function createVoteValidator(rules) {
-  // Your code here
+  return (voter) => {
+    if (!voter) return { valid: false, reason: "No voter data" };
+
+    // Required fields check
+    for (const field of rules.requiredFields) {
+      if (!(field in voter)) return { valid: false, reason: `Missing ${field}` };
+    }
+
+    // Age check
+    if (voter.age < rules.minAge) return { valid: false, reason: "Underage" };
+
+    return { valid: true, reason: "Voter is valid" };
+  };
 }
 
+/**
+ * 3. Count Votes (Recursion for Nested Regions)
+ */
 export function countVotesInRegions(regionTree) {
-  // Your code here
+  if (!regionTree) return 0;
+
+  let total = regionTree.votes || 0;
+
+  // Recursive case: If subRegions exist, sum their votes
+  if (regionTree.subRegions && Array.isArray(regionTree.subRegions)) {
+    total += regionTree.subRegions.reduce((sum, sub) => {
+      return sum + countVotesInRegions(sub);
+    }, 0);
+  }
+
+  return total;
 }
 
+/**
+ * 4. Tally Pure (Pure Function - No Mutation)
+ */
 export function tallyPure(currentTally, candidateId) {
-  // Your code here
+  // Return NEW object using spread to keep it "Pure"
+  return {
+    ...currentTally,
+    [candidateId]: (currentTally[candidateId] || 0) + 1
+  };
 }

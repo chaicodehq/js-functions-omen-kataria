@@ -52,30 +52,52 @@
  *   recipe({ name: "Haldi" })
  *   // => { name: "Haldi", form: "powder", packed: true, label: "Haldi Masala" }
  */
-export function pipe(...fns) {
-  // Your code here
-}
 
-export function compose(...fns) {
-  // Your code here
-}
+// 1. Pipe: Left to Right (f -> g -> h)
+export const pipe = (...fns) => {
+  if (fns.length === 0) return (x) => x;
+  
+  // reduce turns multiple functions into a single value/function
+  return (initialValue) => fns.reduce((acc, fn) => fn(acc), initialValue);
+};
 
-export function grind(spice) {
-  // Your code here
-}
+// 2. Compose: Right to Left (h -> g -> f)
+export const compose = (...fns) => {
+  if (fns.length === 0) return (x) => x;
 
-export function roast(spice) {
-  // Your code here
-}
+  // reduceRight processes the array from end to start
+  return (initialValue) => fns.reduceRight((acc, fn) => fn(acc), initialValue);
+};
 
-export function mix(spice) {
-  // Your code here
-}
+// --- Utility Functions (Pure Transformations) ---
 
-export function pack(spice) {
-  // Your code here
-}
+export const grind = (spice) => ({ ...spice, form: "powder" });
 
-export function createRecipe(steps) {
-  // Your code here
-}
+export const roast = (spice) => ({ ...spice, roasted: true, aroma: "strong" });
+
+export const mix = (spice) => ({ ...spice, mixed: true });
+
+export const pack = (spice) => ({ 
+  ...spice, 
+  packed: true, 
+  label: `${spice.name} Masala` 
+});
+
+// 7. Create Recipe: Mapping strings to functions
+export const createRecipe = (steps) => {
+  if (!Array.isArray(steps) || steps.length === 0) return (x) => x;
+
+  const mapping = {
+    grind,
+    roast,
+    mix,
+    pack
+  };
+
+  // Convert string names to actual function references
+  const functionsToApply = steps
+    .map(step => mapping[step])
+    .filter(fn => typeof fn === 'function');
+
+  return pipe(...functionsToApply);
+};

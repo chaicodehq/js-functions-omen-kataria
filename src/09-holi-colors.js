@@ -53,22 +53,64 @@
  *   // => { name: "red-blue", r: 128, g: 0, b: 128 }
  *   // red and blue objects are UNCHANGED
  */
+// 1. Mix Colors: Averaging RGB values (No mutation)
 export function mixColors(color1, color2) {
-  // Your code here
+  if (!color1 || !color2 || typeof color1 !== 'object' || typeof color2 !== 'object') {
+    return null;
+  }
+
+  // Creating a brand new object instead of modifying inputs
+  return {
+    name: `${color1.name}-${color2.name}`,
+    r: Math.round((color1.r + color2.r) / 2),
+    g: Math.round((color1.g + color2.g) / 2),
+    b: Math.round((color1.b + color2.b) / 2)
+  };
 }
 
+// 2. Adjust Brightness: Factor multiplication with clamping
 export function adjustBrightness(color, factor) {
-  // Your code here
+  if (!color || typeof factor !== 'number') return null;
+
+  // Clamp function ensures values stay between 0 and 255
+  const clamp = (val) => Math.min(255, Math.max(0, Math.round(val)));
+
+  return {
+    ...color, // Spread operator to copy properties
+    r: clamp(color.r * factor),
+    g: clamp(color.g * factor),
+    b: clamp(color.b * factor)
+  };
 }
 
+// 3. Add to Palette: Return new array with spread operator
 export function addToPalette(palette, color) {
-  // Your code here
+  if (!Array.isArray(palette)) {
+    return color ? [color] : [];
+  }
+  if (!color) return [...palette]; // Return a copy even if color is null
+
+  // Use spread instead of .push() to avoid mutation
+  return [...palette, color];
 }
 
+// 4. Remove from Palette: Filtering by name
 export function removeFromPalette(palette, colorName) {
-  // Your code here
+  if (!Array.isArray(palette)) return [];
+
+  // .filter() always returns a NEW array, keeping it "Pure"
+  return palette.filter(color => color.name !== colorName);
 }
 
+// 5. Merge Palettes: No duplicates (Keep first occurrence)
 export function mergePalettes(palette1, palette2) {
-  // Your code here
+  const p1 = Array.isArray(palette1) ? palette1 : [];
+  const p2 = Array.isArray(palette2) ? palette2 : [];
+
+  const combined = [...p1, ...p2];
+
+  // Filter out duplicates by checking if current index is the first occurrence
+  return combined.filter((color, index, self) => 
+    index === self.findIndex((c) => c.name === color.name)
+  );
 }
